@@ -1,0 +1,8 @@
+{
+    "build": {
+      "base": "python:3.10",
+      "setup": ["pip install -r requirements.txt"]
+    },
+    "start": "gunicorn backend.wsgi --bind 0.0.0.0:$PORT"
+  }
+  
