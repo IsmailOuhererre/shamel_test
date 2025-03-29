@@ -176,4 +176,3 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Default session engine (using DB-backed sessions)
 ALLOWED_HOSTS = ['192.168.0.194', 'localhost', '127.0.0.1', '*']
-CORS_ALLOW_ALL_ORIGINS = True
