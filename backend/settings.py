@@ -10,9 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+from datetime import timedelta
 from pathlib import Path
+from urllib.parse import quote_plus
 import dj_database_url
-
 from dotenv import load_dotenv
 import os
 
@@ -62,6 +63,9 @@ INSTALLED_APPS = [
     'backend.apps.classrooms.apps.ClassroomsConfig',
     'backend.apps.contracts.apps.ContractsConfig',
     'backend.apps.chat.apps.ChatConfig',
+    'rest_framework_simplejwt.token_blacklist',
+     'backend.apps.achievements',
+     'djongo',
 
     # other apps...
 ]
@@ -74,6 +78,27 @@ REST_FRAMEWORK = {
     
 }
 
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
+    
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+    
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+}
 
 
 MIDDLEWARE = [
@@ -104,7 +129,40 @@ TEMPLATES = [
     },
 ]
 
+
+# Email settings
+# Add these settings to your settings.py file
+APP_NAME = "ShamelApp"
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Change to your email provider's SMTP server
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = 'i_ouhererre@estin.dz'  # Change to your email address
+EMAIL_HOST_PASSWORD = 'cdrf qcyx dpba tjvb'  
+DEFAULT_FROM_EMAIL = 'ShameLapp <i_ouhererre@estin.dz>'  # Change to your email address
+
+# Verification code expiration (30 minutes)
+VERIFICATION_CODE_EXPIRE_MINUTES = 30
+ONESIGNAL_APP_ID = 'your-app-id'
+ONESIGNAL_REST_API_KEY = 'your-api-key'
 WSGI_APPLICATION = 'backend.wsgi.application'
+APPLICATION_FEE_PERCENTAGE = float(os.getenv('APPLICATION_FEE_PERCENTAGE', 5)) 
+
+
+CHARGILY_CONFIG = {
+    'MODE': os.getenv('CHARGILY_MODE', 'test'),  # 'test' or 'live'
+    'API_KEY': os.getenv('CHARGILY_API_KEY'),
+    'SECRET_KEY': os.getenv('CHARGILY_SECRET_KEY'),
+        'PLATFORM_ACCOUNT_ID': 'your_platform_account_id',
+    'BASE_URL': 'https://api.chargily.com/' if os.getenv('CHARGILY_MODE') == 'live' else 'https://test.chargily.com/',
+        # Replace with your actual platform account ID
+    'WEBHOOK_SECRET': os.getenv('CHARGILY_WEBHOOK_SECRET'),
+    'FRONTEND_URL': os.getenv('FRONTEND_URL', 'yourapp://'),
+    'BACKEND_URL': os.getenv('BACKEND_URL', 'http://192.168.0.194:8000'),
+   
+}
 
 
 # Database
@@ -113,9 +171,9 @@ DATABASES = {
     'default': dj_database_url.config(
         default=os.getenv('DATABASE_URL'),
         conn_max_age=600,
-        conn_health_checks=True,
     )
 }
+
 
 # Fallback to your local settings if needed
 if not DATABASES['default']:
@@ -129,7 +187,26 @@ if not DATABASES['default']:
             'PORT': os.getenv('PGPORT', '5432'),
         }
     }
+# MongoDB Atlas Configuration for geospatial queries
+MONGO_USER = quote_plus(os.getenv('MONGO_ATLAS_USER', ''))
+MONGO_PASS = quote_plus(os.getenv('MONGO_ATLAS_PASSWORD', ''))
+MONGO_CLUSTER = os.getenv('MONGO_ATLAS_CLUSTER', '')
+MONGO_DB_NAME = os.getenv('MONGO_ATLAS_DB_NAME', 'classroom_locator')
 
+DATABASES['mongodb'] = {
+    'ENGINE': 'djongo',
+        'NAME': 'shameldb',  # MongoDB database name
+        'ENFORCE_SCHEMA': False,
+        'CLIENT': {
+            'host': 'mongodb+srv://ouhererreismail:shameldb@shameldb.xeecf5b.mongodb.net/?retryWrites=true&w=majority&appName=shameldb',
+            'tls': True,
+            'tlsAllowInvalidCertificates': False,
+            'authSource': 'admin'
+        },
+}
+
+# Database Router
+DATABASE_ROUTERS = ['backend.db_routers.MongoDBRouter']
 
 
 
@@ -176,3 +253,5 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Default session engine (using DB-backed sessions)
 ALLOWED_HOSTS = ['192.168.0.194', 'localhost', '127.0.0.1', '*']
+
+
